@@ -18,8 +18,16 @@ Run following command at root of project
 
 ArrayLiteralExpression at Decorators
 
-![](https://uc455751f3b7c4c4a39fc8b2ab28.previews.dropboxusercontent.com/p/thumb/AAunsFi1pQ0_irAAR-hYygFYWQFAr6oHuehY3ZM4n4VzohHVpn7FqROEe0oUKaIwVMP93sCUCMQ7RXA1_258Moa4Eq54Vj-hAtz_jB1wh3F3EMzSrT_QqTNe-6cO3RuQx6OljBVdHjRHRP9ixfekZ3faS_e2OdTuvupsTAeLhQBAdzoTSzDntYIPTTWhKsVAW-Ic5Xf1HT4-1IKEpJUsMU2f8p9kU-5G7hZgZ64cgJxoA3eKs017ST4D-EyJxlz6qULJR4Fc0sWtXX2vxauNMktcJqGptz4gURYIH4J5L_HPBa6OlrVnJZSnRjCSQIgrVZ4dtKO5zGaNxfT4b-k2q9npoJ213nlpQ1smwF26hfUokYic_DrKYkAXUQXacVzJEYRHhHWf_4l-TS9utjKsLXnm/p.png?fv_content=true&size_mode=5)
+![](https://user-images.githubusercontent.com/11459840/76909370-ba2a7200-68b3-11ea-91ff-c3466aeb24e1.png)
 
+DTO
+
+<div style="overflow:auto;">
+		<div>
+			<img src="https://user-images.githubusercontent.com/11459840/76909373-bbf43580-68b3-11ea-8e4c-b638a27dc41a.png" width="425" alt=""/>
+			<img src="https://user-images.githubusercontent.com/11459840/76909375-be568f80-68b3-11ea-8b3c-8909a25a410a.png" width="425" alt=""/>
+		</div>
+</div>
 
 
 ### TODO
@@ -27,10 +35,6 @@ ArrayLiteralExpression at Decorators
 - [ ] import
 
 - [ ] type property
-
-- [ ] class property
-
-- [ ] constructor
 
 - [ ] angular template attributes
 
