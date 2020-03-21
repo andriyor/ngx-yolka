@@ -3,7 +3,12 @@
 import { Project, Node } from "ts-morph";
 import { SyntaxKind } from "@ts-morph/common";
 import * as format from 'prettier-eslint';
+const prettier = require("prettier");
 import * as fs from "fs";
+const fg = require('fast-glob');
+
+const posthtml = require('posthtml');
+const attrsSorter = require('posthtml-attrs-sorter');
 
 const project = new Project({});
 const sourceFiles = project.addSourceFilesAtPaths(["**/*.module.ts"]);
@@ -164,4 +169,47 @@ for (const dtoFile of dtoFiles) {
       if (err) throw err;
     });
   }
+}
+
+const fileNames = fg.sync(['**.html', '!**/node_modules'], { dot: true });
+
+const directive = String.raw`\*\w+`;
+const variables = String.raw`\#\w+`;
+const banana = String.raw`[^\[]\w+\)(?!\])`;
+const box = String.raw`\[(\w*)\]`;
+const bananaInTheBox =  String.raw`\[\(\w*\)\]`;
+
+const orderConfig = {
+  "order": [
+    directive,
+    variables,
+    "id",
+    "class",
+    "$unknown$",
+    "name",
+    "data-.+",
+    "src",
+    "for",
+    "type",
+    "href",
+    "values",
+    "title",
+    "alt",
+    "role",
+    "aria-.+",
+    banana,
+    box,
+    bananaInTheBox
+  ]
+}
+
+for (const fileName of fileNames) {
+  const htmlRaw = fs.readFileSync(fileName,  "utf8");
+  posthtml()
+    .use(attrsSorter(orderConfig))
+    .process(htmlRaw)
+    .then(function(result) {
+      const fromatted = prettier.format(result.html, { parser: "html" });
+      fs.writeFileSync(fileName, fromatted);
+    })
 }
