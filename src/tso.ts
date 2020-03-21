@@ -4,15 +4,29 @@ import { Project, Node } from "ts-morph";
 import { SyntaxKind } from "@ts-morph/common";
 import * as format from 'prettier-eslint';
 const prettier = require("prettier");
-import * as fs from "fs";
+import meow = require("meow");
 const fg = require('fast-glob');
-
 const posthtml = require('posthtml');
 const attrsSorter = require('posthtml-attrs-sorter');
 
+import * as fs from "fs";
+
 const project = new Project({});
-const sourceFiles = project.addSourceFilesAtPaths(["**/*.module.ts"]);
-const dtoFiles = project.addSourceFilesAtPaths(["**/*.dto.ts"]);
+
+const cli = meow(`
+	Examples
+	  $ node tso
+	  $ node tso --file examples/search-input.module.ts
+`, {
+  flags: {
+    file: {
+      type: 'string',
+      alias: 'f'
+    }
+  }
+});
+
+
 
 const compareLength = (a, b) => {
   if (a.length < b.length) {
@@ -58,14 +72,17 @@ const eslintConfig = {
   }
 };
 
+function formatModules(moduleFiles) {
+  for (const sourceFile of moduleFiles) {
+    const classDec = sourceFile.forEachChild(node => {
+      if (Node.isClassDeclaration(node)) return node;
+      return undefined;
+    });
 
-for (const sourceFile of sourceFiles) {
-  const classDec = sourceFile.forEachChild(node => {
-    if (Node.isClassDeclaration(node)) return node;
-    return undefined;
-  });
+    if (!classDec) {
+      continue
+    }
 
-  if (classDec) {
     const decorators = classDec.getDecorators();
     const objectLiteralExpression = decorators[0]
       .getFirstChildByKind(SyntaxKind.CallExpression)
@@ -108,13 +125,16 @@ for (const sourceFile of sourceFiles) {
   }
 }
 
-for (const dtoFile of dtoFiles) {
-  const classDec = dtoFile.forEachChild(node => {
-    if (Node.isClassDeclaration(node)) return node;
-    return undefined;
-  });
+function formatDTO(dtoFiles) {
+  for (const dtoFile of dtoFiles) {
+    const classDec = dtoFile.forEachChild(node => {
+      if (Node.isClassDeclaration(node)) return node;
+      return undefined;
+    });
 
-  if (classDec) {
+    if (!classDec) {
+      continue
+    }
 
     const structures = [];
     for (const property of classDec.getProperties()) {
@@ -171,8 +191,6 @@ for (const dtoFile of dtoFiles) {
   }
 }
 
-const fileNames = fg.sync(['**.html', '!**/node_modules'], { dot: true });
-
 const directive = String.raw`\*\w+`;
 const variables = String.raw`\#\w+`;
 const banana = String.raw`[^\[]\w+\)(?!\])`;
@@ -203,13 +221,39 @@ const orderConfig = {
   ]
 }
 
-for (const fileName of fileNames) {
-  const htmlRaw = fs.readFileSync(fileName,  "utf8");
-  posthtml()
-    .use(attrsSorter(orderConfig))
-    .process(htmlRaw)
-    .then(function(result) {
-      const fromatted = prettier.format(result.html, { parser: "html" });
-      fs.writeFileSync(fileName, fromatted);
-    })
+function formatHTML(fileNames) {
+  for (const fileName of fileNames) {
+    const htmlRaw = fs.readFileSync(fileName,  "utf8");
+    posthtml()
+      .use(attrsSorter(orderConfig))
+      .process(htmlRaw)
+      .then(function(result) {
+        const fromatted = prettier.format(result.html, { parser: "html" });
+        fs.writeFileSync(fileName, fromatted);
+      })
+  }
+}
+
+if (cli.flags.file) {
+  if (cli.flags.file.includes('html')) {
+    const fileNames = [cli.flags.file];
+    formatHTML(fileNames);
+  }
+  if (cli.flags.file.includes('dto')) {
+    const dtoFiles = project.addSourceFilesAtPaths([cli.flags.file]);
+    formatDTO(dtoFiles);
+  }
+  if (cli.flags.file.includes('module')) {
+    const moduleFiles = project.addSourceFilesAtPaths([cli.flags.file]);
+    formatModules(moduleFiles);
+  }
+} else {
+  const fileNames = fg.sync(['**.html', '!**/node_modules'], { dot: true });
+  formatHTML(fileNames);
+
+  const dtoFiles = project.addSourceFilesAtPaths(["**/*.dto.ts"]);
+  formatDTO(dtoFiles);
+
+  const moduleFiles = project.addSourceFilesAtPaths(["**/*.module.ts"]);
+  formatModules(moduleFiles);
 }
